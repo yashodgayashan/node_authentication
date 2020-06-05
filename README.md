@@ -88,7 +88,7 @@ ACCESS_TOKEN_SECRET=f901903726c3d0d52ac27a989a0c0744de3709a015e352ae171673928f14
 ###### JWT is generated with the payload, secret and properties such as expire time.
 
 ```
-jwt.sign(payload,secret, {properties});
+jwt.sign(payload, secret, {properties});
 ```
 
 #### Login route.
@@ -135,4 +135,28 @@ app.post("/login", (req, res) => {
 
 #### Protected route.
 
-Then let's make a route which only accepts requests with the jwt token with given secret.
+Then let's make a route which only accepts requests with the jwt token with the given secret. It worked as a middleware and it take the request and get the token and validate the jwt token and if not it will output `401 unauthorized`. The middleware passes the userInformation as `req.user` to the forward.
+
+**index.js**
+
+```
+// Authenticate the Token.
+authenticateUser = (req, res, next) => {
+  const autheHeader = req.headers["authorization"];
+  const token = autheHeader && autheHeader.split(" ")[1];
+  if (token == null) return res.status(401).send();
+
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).send();
+    }
+    req.user = user;
+    next();
+  });
+};
+
+// Protected route.
+app.get("/any", authenticateUser, (req, res) => {
+  res.status(200).send("Any");
+});
+```
