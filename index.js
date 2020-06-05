@@ -77,10 +77,22 @@ app.post("/login", (req, res) => {
     res.status(401).send();
   }
 });
+// Protected route.
+app.get("/any", authenticateUser, (req, res) => {
+  res.status(200).send("Any");
+});
 // Route only for admins.
 app.get("/admin", authenticateUser, (req, res) => {
   if (req.user.role == "Admin") {
     res.status(200).send("Admin");
+  } else {
+    res.status(403).send();
+  }
+});
+// Route only for user
+app.get("/user", authenticateUser, (req, res) => {
+  if (req.user.role == "User") {
+    res.status(200).send("User");
   } else {
     res.status(403).send();
   }
