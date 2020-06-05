@@ -20,13 +20,15 @@ This is a tutorial for authentication and authorization with node. Simple authen
 
 ## Code explanation.
 
+### Authentication
+
 #### Import needed modules and add midlewares.
 
 In first phase let's import needed modules and initialize middlewares and listen to a port and the port is in the `.env` file.
 
 **index.js**
 
-```
+```js
 // Import libraries.
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -66,7 +68,7 @@ For this tutorial I have used a tempory data array and you can use any data stor
 
 **index.js**
 
-```
+```js
 // Tempory datastore.
 var users = [
   { userName: "yashod", password: "test", userType: "Admin" },
@@ -87,8 +89,8 @@ ACCESS_TOKEN_SECRET=f901903726c3d0d52ac27a989a0c0744de3709a015e352ae171673928f14
 
 ###### JWT is generated with the payload, secret and properties such as expire time.
 
-```
-jwt.sign(payload, secret, {properties});
+```js
+jwt.sign(payload, secret, { properties });
 ```
 
 #### Login route.
@@ -98,7 +100,7 @@ it will generate the jwt token with userName and userType and send it as the res
 
 **index.js**
 
-```
+```js
 // To generate JWT token with 24h expire time.
 generateJwtToken = value => {
   const payload = { name: value.userName, role: value.userType };
@@ -139,7 +141,7 @@ Then let's make a route which only accepts requests with the jwt token with the 
 
 **index.js**
 
-```
+```js
 // Authenticate the Token.
 authenticateUser = (req, res, next) => {
   const autheHeader = req.headers["authorization"];
@@ -158,5 +160,30 @@ authenticateUser = (req, res, next) => {
 // Protected route.
 app.get("/any", authenticateUser, (req, res) => {
   res.status(200).send("Any");
+});
+```
+
+### Authorization
+
+The authorization is simply done using checking the usertype of the user or else you can use passport. The `/admin` route can be only access by admins and `/user` route can be only access by users.
+
+**index.js**
+
+```js
+// Route only for admins.
+app.get("/admin", authenticateUser, (req, res) => {
+  if (req.user.role == "Admin") {
+    res.status(200).send("Admin");
+  } else {
+    res.status(403).send();
+  }
+});
+// Route only for user
+app.get("/user", authenticateUser, (req, res) => {
+  if (req.user.role == "User") {
+    res.status(200).send("User");
+  } else {
+    res.status(403).send();
+  }
 });
 ```
