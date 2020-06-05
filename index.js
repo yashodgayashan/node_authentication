@@ -61,3 +61,18 @@ generateJwtToken = value => {
   });
   return { accessToken: accessToken };
 };
+
+// Authenticate the Token
+authenticateUser = (req, res, next) => {
+  const autheHeader = req.headers["authorization"];
+  const token = autheHeader && autheHeader.split(" ")[1];
+  if (token == null) return res.status(401).send();
+
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).send();
+    }
+    req.user = user;
+    next();
+  });
+};
