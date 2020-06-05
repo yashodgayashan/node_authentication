@@ -30,6 +30,31 @@ var users = [
   { userName: "amal", password: "test", userType: "User" }
 ];
 
+// To generate JWT token with 24h expire time.
+generateJwtToken = value => {
+  const payload = { name: value.userName, role: value.userType };
+  const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, {
+    expiresIn: "24h"
+  });
+  return { accessToken: accessToken };
+};
+
+// Authenticate the Token.
+authenticateUser = (req, res, next) => {
+  const autheHeader = req.headers["authorization"];
+  const token = autheHeader && autheHeader.split(" ")[1];
+  if (token == null) return res.status(401).send();
+
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).send();
+    }
+    req.user = user;
+    next();
+  });
+};
+
+// Routes.
 app.post("/login", (req, res) => {
   // Check the body is valid.
   if (req.body.userName == undefined) {
@@ -52,27 +77,11 @@ app.post("/login", (req, res) => {
     res.status(401).send();
   }
 });
-
-// To generate JWT token with 24h expire time.
-generateJwtToken = value => {
-  const payload = { Name: value.userName, Role: value.userType };
-  const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, {
-    expiresIn: "24h"
-  });
-  return { accessToken: accessToken };
-};
-
-// Authenticate the Token
-authenticateUser = (req, res, next) => {
-  const autheHeader = req.headers["authorization"];
-  const token = autheHeader && autheHeader.split(" ")[1];
-  if (token == null) return res.status(401).send();
-
-  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-    if (err) {
-      return res.status(403).send();
-    }
-    req.user = user;
-    next();
-  });
-};
+// Route only for admins.
+app.get("/admin", authenticateUser, (req, res) => {
+  if (req.user.role == "Admin") {
+    res.status(200).send("Admin");
+  } else {
+    res.status(403).send();
+  }
+});
