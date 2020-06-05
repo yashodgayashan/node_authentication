@@ -23,3 +23,41 @@ app.use(cors());
 app.listen(port, () => {
   console.log(`Server running on port: ${port}`);
 });
+
+// Tempory datastore.
+var users = [
+  { userName: "yashod", password: "test", userType: "Admin" },
+  { userName: "amal", password: "test", userType: "User" }
+];
+
+app.post("/login", (req, res) => {
+  // Check the body is valid.
+  if (req.body.userName == undefined) {
+    res.status(406).send("Not acceptable");
+  } else if (req.body.password == undefined) {
+    res.status(406).send("Not acceptable");
+  } else {
+    // Store the body parameters.
+    var userName = req.body.userName;
+    var password = req.body.password;
+    users.forEach(value => {
+      if (value.userName == userName) {
+        if (value.password == password) {
+          res.status(200).send(generateJwtToken(value));
+        } else {
+          res.status(401).send();
+        }
+      }
+    });
+    res.status(401).send();
+  }
+});
+
+// To generate JWT token with 24h expire time.
+generateJwtToken = value => {
+  const payload = { Name: value.userName, Role: value.userType };
+  const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, {
+    expiresIn: "24h"
+  });
+  return { accessToken: accessToken };
+};
