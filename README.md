@@ -74,6 +74,23 @@ var users = [
 ];
 ```
 
+##### JWT token.
+
+When generating a JWT token it is encrypted with a secret and it can be only decrypt with that secret hence no one can generate a JWT token and access the backend.
+Token can be found in the `.env` file.
+
+**.env**
+
+```
+ACCESS_TOKEN_SECRET=f901903726c3d0d52ac27a989a0c0744de3709a015e352ae171673928f142f7f9807c86488e0eb1f9c6923439bdb5c8305d1428b07eb26262761c70a22c9ad87
+```
+
+###### JWT is generated with the payload, secret and properties such as expire time.
+
+```
+jwt.sign(payload,secret, {properties});
+```
+
 #### Login route.
 
 Login route will accept the userName and the password as body parameters and check with the tempory database and if it is match with any
@@ -115,3 +132,7 @@ app.post("/login", (req, res) => {
   }
 });
 ```
+
+#### Protected route.
+
+Then let's make a route which only accepts requests with the jwt token with given secret.
